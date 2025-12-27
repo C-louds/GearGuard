@@ -1,39 +1,43 @@
 // prisma/seed.ts
-import { PrismaClient } from "@prisma/client";
-import bcrypt from "bcryptjs";
+import { PrismaClient } from "@prisma/client"
+import bcrypt from "bcryptjs"
 
-const prisma = new PrismaClient();
+const prisma = new PrismaClient()
 
 async function main() {
-  console.log("🌱 Seeding database...");
+  console.log("🌱 Seeding database...")
 
-  // Clear existing data
-  console.log("🗑️  Clearing existing data...");
-  await prisma.maintenanceRequest.deleteMany();
-  await prisma.equipment.deleteMany();
-  await prisma.equipmentCategory.deleteMany();
-  await prisma.technician.deleteMany();
-  await prisma.maintenanceTeam.deleteMany();
-  await prisma.employee.deleteMany();
-  await prisma.department.deleteMany();
-  console.log("✅ Data cleared");
+  // Clear existing data (order matters)
+  console.log("🗑️  Clearing existing data...")
+  await prisma.maintenanceRequest.deleteMany()
+  await prisma.equipment.deleteMany()
+  await prisma.equipmentCategory.deleteMany()
+  await prisma.technician.deleteMany()
+  await prisma.maintenanceTeam.deleteMany()
+  await prisma.employee.deleteMany()
+  await prisma.department.deleteMany()
+  console.log("✅ Data cleared")
 
-  // Create Departments
+  // ----------------------
+  // Departments
+  // ----------------------
   const productionDept = await prisma.department.create({
     data: { name: "Production" },
-  });
+  })
 
   const itDept = await prisma.department.create({
     data: { name: "IT" },
-  });
+  })
 
   const maintenanceDept = await prisma.department.create({
     data: { name: "Maintenance" },
-  });
+  })
 
-  console.log("✅ Departments created");
+  console.log("✅ Departments created")
 
-  // Create Users
+  // ----------------------
+  // Employees
+  // ----------------------
   const admin = await prisma.employee.create({
     data: {
       name: "Admin User",
@@ -42,7 +46,7 @@ async function main() {
       role: "ADMIN",
       departmentId: maintenanceDept.id,
     },
-  });
+  })
 
   const manager = await prisma.employee.create({
     data: {
@@ -52,7 +56,7 @@ async function main() {
       role: "MANAGER",
       departmentId: productionDept.id,
     },
-  });
+  })
 
   const user = await prisma.employee.create({
     data: {
@@ -62,26 +66,30 @@ async function main() {
       role: "USER",
       departmentId: productionDept.id,
     },
-  });
+  })
 
-  console.log("✅ Users created");
+  console.log("✅ Employees created")
 
-  // Create Maintenance Teams
+  // ----------------------
+  // Maintenance Teams
+  // ----------------------
   const mechanicsTeam = await prisma.maintenanceTeam.create({
     data: { name: "Mechanics" },
-  });
+  })
 
   const electricalTeam = await prisma.maintenanceTeam.create({
     data: { name: "Electrical Team" },
-  });
+  })
 
   const itTeam = await prisma.maintenanceTeam.create({
     data: { name: "IT Support" },
-  });
+  })
 
-  console.log("✅ Maintenance teams created");
+  console.log("✅ Maintenance teams created")
 
-  // Create Technicians
+  // ----------------------
+  // Technicians
+  // ----------------------
   const techEmployee1 = await prisma.employee.create({
     data: {
       name: "Mike Technician",
@@ -90,14 +98,14 @@ async function main() {
       role: "TECHNICIAN",
       departmentId: maintenanceDept.id,
     },
-  });
+  })
 
   const technician1 = await prisma.technician.create({
     data: {
       employeeId: techEmployee1.id,
       maintenanceTeamId: mechanicsTeam.id,
     },
-  });
+  })
 
   const techEmployee2 = await prisma.employee.create({
     data: {
@@ -107,34 +115,38 @@ async function main() {
       role: "TECHNICIAN",
       departmentId: maintenanceDept.id,
     },
-  });
+  })
 
-  await prisma.technician.create({
+  const technician2 = await prisma.technician.create({
     data: {
       employeeId: techEmployee2.id,
       maintenanceTeamId: electricalTeam.id,
     },
-  });
+  })
 
-  console.log("✅ Technicians created");
+  console.log("✅ Technicians created")
 
-  // Create Equipment Categories
+  // ----------------------
+  // Equipment Categories
+  // ----------------------
   const cncCategory = await prisma.equipmentCategory.create({
     data: { name: "CNC Machines" },
-  });
+  })
 
   const computersCategory = await prisma.equipmentCategory.create({
     data: { name: "Computers" },
-  });
+  })
 
   const vehiclesCategory = await prisma.equipmentCategory.create({
     data: { name: "Vehicles" },
-  });
+  })
 
-  console.log("✅ Equipment categories created");
+  console.log("✅ Equipment categories created")
 
-  // Create Equipment
-  await prisma.equipment.create({
+  // ----------------------
+  // Equipment
+  // ----------------------
+  const cncMachine = await prisma.equipment.create({
     data: {
       name: "CNC Mill 001",
       serialNumber: "CNC-001-2023",
@@ -146,9 +158,9 @@ async function main() {
       purchaseDate: new Date("2023-01-15"),
       warrantyExpiryDate: new Date("2026-01-15"),
     },
-  });
+  })
 
-  await prisma.equipment.create({
+  const laptop = await prisma.equipment.create({
     data: {
       name: "Laptop - Jane",
       serialNumber: "DELL-LAP-2024-001",
@@ -160,9 +172,9 @@ async function main() {
       purchaseDate: new Date("2024-03-10"),
       warrantyExpiryDate: new Date("2027-03-10"),
     },
-  });
+  })
 
-  await prisma.equipment.create({
+  const forklift = await prisma.equipment.create({
     data: {
       name: "Forklift 05",
       serialNumber: "FLT-005-2022",
@@ -173,23 +185,87 @@ async function main() {
       location: "Warehouse - Loading Dock",
       purchaseDate: new Date("2022-06-20"),
     },
-  });
+  })
 
-  console.log("✅ Equipment created");
+  console.log("✅ Equipment created")
 
-  console.log("\n🎉 Seeding completed successfully!");
-  console.log("\n📝 Test Accounts:");
-  console.log("Admin:      admin@gearguard.com / admin123");
-  console.log("Manager:    manager@gearguard.com / manager123");
-  console.log("User:       user@gearguard.com / user123");
-  console.log("Technician: tech@gearguard.com / tech123");
+  // ----------------------
+  // Maintenance Requests
+  // ----------------------
+  await prisma.maintenanceRequest.create({
+    data: {
+      subject: "CNC spindle vibration",
+      description: "Excessive vibration during operation",
+      equipmentId: cncMachine.id,
+      equipmentCategoryId: cncMachine.categoryId,
+      maintenanceTeamId: cncMachine.maintenanceTeamId,
+      requestType: "CORRECTIVE",
+      stage: "IN_PROGRESS",
+      requestedById: manager.id,
+      assignedToId: technician1.id,
+      scheduledDate: new Date(),
+    },
+  })
+
+  await prisma.maintenanceRequest.create({
+    data: {
+      subject: "Quarterly CNC maintenance",
+      description: "Routine preventive maintenance",
+      equipmentId: cncMachine.id,
+      equipmentCategoryId: cncMachine.categoryId,
+      maintenanceTeamId: cncMachine.maintenanceTeamId,
+      requestType: "PREVENTIVE",
+      stage: "ASSIGNED",
+      requestedById: admin.id,
+      assignedToId: technician1.id,
+      scheduledDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+    },
+  })
+
+  await prisma.maintenanceRequest.create({
+    data: {
+      subject: "Laptop overheating",
+      description: "Laptop shuts down randomly due to heat",
+      equipmentId: laptop.id,
+      equipmentCategoryId: laptop.categoryId,
+      maintenanceTeamId: laptop.maintenanceTeamId,
+      requestType: "CORRECTIVE",
+      stage: "NEW",
+      requestedById: user.id,
+    },
+  })
+
+  await prisma.maintenanceRequest.create({
+    data: {
+      subject: "Forklift brake inspection",
+      description: "Preventive brake inspection",
+      equipmentId: forklift.id,
+      equipmentCategoryId: forklift.categoryId,
+      maintenanceTeamId: forklift.maintenanceTeamId,
+      requestType: "PREVENTIVE",
+      stage: "REPAIRED",
+      requestedById: manager.id,
+      assignedToId: technician1.id,
+      completedDate: new Date(),
+      durationHours: 2.5,
+    },
+  })
+
+  console.log("✅ Maintenance requests created")
+
+  console.log("\n🎉 Seeding completed successfully!")
+  console.log("\n📝 Test Accounts:")
+  console.log("Admin:      admin@gearguard.com / admin123")
+  console.log("Manager:    manager@gearguard.com / manager123")
+  console.log("User:       user@gearguard.com / user123")
+  console.log("Technician: tech@gearguard.com / tech123")
 }
 
 main()
   .catch((e) => {
-    console.error("❌ Error seeding database:", e);
-    process.exit(1);
+    console.error("❌ Error seeding database:", e)
+    process.exit(1)
   })
   .finally(async () => {
-    await prisma.$disconnect();
-  });
+    await prisma.$disconnect()
+  })

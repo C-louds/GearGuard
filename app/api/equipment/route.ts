@@ -54,14 +54,3 @@ export async function POST(req: Request) {
     )
   }
 }
-
-
-
-export async function PUT(req: Request) {
-    return new Response("I'll add later maybe ");
-}
-
-export async function DELETE(req: Request) {
-    return new Response("I'll add later maybe ");
-
-}

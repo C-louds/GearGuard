@@ -14,8 +14,10 @@ import {
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { useRouter } from 'next/navigation'
 
 export default function EquipmentManagement() {
+  const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
   const [trackingMode, setTrackingMode] = useState('all'); // 'all', 'department', 'employee'
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -24,6 +26,7 @@ export default function EquipmentManagement() {
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [selectedEquipmentId, setSelectedEquipmentId] = useState(null);
 
   const [newEquipment, setNewEquipment] = useState({
     name: '',
@@ -131,7 +134,7 @@ export default function EquipmentManagement() {
       });
     }
 
-    
+    // Sort groups alphabetically, but keep 'Unassigned' at the end
     const sortedGrouped = {};
     const sortedKeys = Object.keys(grouped).sort((a, b) => {
       if (a === 'Unassigned') return 1;
@@ -148,7 +151,7 @@ export default function EquipmentManagement() {
 
   const equipmentGroups = groupedEquipment();
   
-  // debugs logs
+  // Debug logs
   console.log('Tracking Mode:', trackingMode);
   console.log('Departments:', departments);
   console.log('Employees:', employees);
@@ -158,7 +161,7 @@ export default function EquipmentManagement() {
     try {
       setError(null);
       
-      // parsing...
+
       const equipmentData = {
         name: newEquipment.name,
         serialNumber: newEquipment.serialNumber,
@@ -185,9 +188,10 @@ export default function EquipmentManagement() {
         throw new Error(errorData.message || 'Failed to add equipment');
       }
 
-      
+      // Refresh the equipment list
       await fetchEquipment();
       
+      // Reset form
       setNewEquipment({
         name: '',
         serialNumber: '',
@@ -208,6 +212,12 @@ export default function EquipmentManagement() {
     }
   };
 
+  const handleEquipmentClick = (equipmentId) => {
+    setSelectedEquipmentId(equipmentId);
+    console.log('Navigate to equipment detail:', equipmentId);
+    router.push(`/equipment/${equipmentId}`)
+};
+
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A';
     return new Date(dateString).toLocaleDateString();
@@ -216,11 +226,12 @@ export default function EquipmentManagement() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50/30 p-8">
       <div className="max-w-7xl mx-auto">
+        {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-semibold text-gray-800 mb-6">Equipment</h1>
           
           <div className="flex items-center justify-between gap-4 mb-4">
-            
+            {/* Search Bar */}
             <div className="relative flex-1 max-w-md">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
               <Input
@@ -232,7 +243,7 @@ export default function EquipmentManagement() {
               />
             </div>
 
-        
+            {/* Tracking Mode Filter */}
             <div className="flex gap-2">
               <Button
                 variant={trackingMode === 'all' ? 'default' : 'outline'}
@@ -265,7 +276,7 @@ export default function EquipmentManagement() {
               </Button>
             </div>
 
-            
+            {/* New Button */}
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
               <DialogTrigger asChild>
                 <Button className="bg-blue-600 hover:bg-blue-700 text-white shadow-sm border-0">
@@ -338,7 +349,7 @@ export default function EquipmentManagement() {
                       onChange={(e) => setNewEquipment({...newEquipment, maintenanceTeamId: e.target.value})}
                       className="bg-white border-gray-200 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400"
                     />
-                  </div>{/* New Button */}
+                  </div>
                   <div className="space-y-2">
                     <Label htmlFor="defaultTechnicianId" className="text-gray-700">Technician ID</Label>
                     <Input
@@ -392,7 +403,7 @@ export default function EquipmentManagement() {
           </div>
         </div>
 
-        
+        {/* Error Alert */}
         {error && (
           <Alert className="mb-6 bg-red-50 border-red-200 text-red-800">
             <AlertDescription>
@@ -401,7 +412,7 @@ export default function EquipmentManagement() {
           </Alert>
         )}
 
-        
+        {/* Loading State */}
         {loading ? (
           <div className="flex items-center justify-center py-20">
             <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
@@ -409,7 +420,7 @@ export default function EquipmentManagement() {
           </div>
         ) : (
           <>
-            
+            {/* Grouped Equipment Display */}
             {Object.entries(equipmentGroups).map(([groupName, items]) => (
               <div key={groupName} className="mb-8">
                 {trackingMode !== 'all' && (
@@ -423,7 +434,7 @@ export default function EquipmentManagement() {
                   </div>
                 )}
                 
-                
+                {/* Table */}
                 <div className="border border-gray-200 rounded-lg overflow-hidden bg-white shadow-sm">
                   <div className="overflow-x-auto">
                     <table className="w-full">
@@ -450,6 +461,7 @@ export default function EquipmentManagement() {
                           return (
                             <tr 
                               key={item.id} 
+                              onClick={() => handleEquipmentClick(item.id)}
                               className={`border-b border-gray-100 hover:bg-blue-50/30 cursor-pointer transition-colors ${
                                 index === items.length - 1 ? 'border-b-0' : ''
                               }`}
