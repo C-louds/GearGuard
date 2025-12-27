@@ -21,15 +21,41 @@ export default function SignupPage() {
     confirmPassword: "",
   });
 
+  const validatePassword = (password: string): { isValid: boolean; message: string } => {
+    if (password.length < 8) {
+      return { isValid: false, message: "Password must be at least 8 characters long" };
+    }
+
+    if (!/[a-z]/.test(password)) {
+      return { isValid: false, message: "Password must contain at least one lowercase letter" };
+    }
+
+    if (!/[A-Z]/.test(password)) {
+      return { isValid: false, message: "Password must contain at least one uppercase letter" };
+    }
+
+    if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
+      return { isValid: false, message: "Password must contain at least one special character" };
+    }
+
+    return { isValid: true, message: "" };
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError("");
     setSuccess(false);
 
-    // pass needs to match
     if (formData.password !== formData.confirmPassword) {
       setError("Passwords do not match");
+      setIsLoading(false);
+      return;
+    }
+
+    const passwordValidation = validatePassword(formData.password);
+    if (!passwordValidation.isValid) {
+      setError(passwordValidation.message);
       setIsLoading(false);
       return;
     }
@@ -56,7 +82,6 @@ export default function SignupPage() {
 
       setSuccess(true);
       
-      // redirect with timeout  sec for nwo ig
       setTimeout(() => {
         router.push("/login");
       }, 2000);
@@ -74,6 +99,19 @@ export default function SignupPage() {
       [e.target.name]: e.target.value,
     }));
   };
+
+  const getPasswordStrength = (password: string) => {
+    const checks = {
+      length: password.length >= 8,
+      lowercase: /[a-z]/.test(password),
+      uppercase: /[A-Z]/.test(password),
+      special: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password),
+    };
+
+    return checks;
+  };
+
+  const passwordStrength = getPasswordStrength(formData.password);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
@@ -135,16 +173,37 @@ export default function SignupPage() {
                 id="password"
                 name="password"
                 type="password"
-                placeholder="••••••••"
+                placeholder="••••••••••"
                 value={formData.password}
                 onChange={handleChange}
                 required
                 disabled={isLoading}
-                minLength={6}
+                minLength={8}
               />
-              <p className="text-xs text-gray-500">
-                Must be at least 6 characters
-              </p>
+              
+              {formData.password && (
+                <div className="space-y-1 mt-2">
+                  <p className="text-xs font-medium text-gray-700">Password requirements:</p>
+                  <div className="space-y-1">
+                    <div className={`text-xs flex items-center ${passwordStrength.length ? 'text-green-600' : 'text-gray-500'}`}>
+                      <span className="mr-2">{passwordStrength.length ? '✓' : '○'}</span>
+                      At least 8 characters
+                    </div>
+                    <div className={`text-xs flex items-center ${passwordStrength.lowercase ? 'text-green-600' : 'text-gray-500'}`}>
+                      <span className="mr-2">{passwordStrength.lowercase ? '✓' : '○'}</span>
+                      One lowercase letter
+                    </div>
+                    <div className={`text-xs flex items-center ${passwordStrength.uppercase ? 'text-green-600' : 'text-gray-500'}`}>
+                      <span className="mr-2">{passwordStrength.uppercase ? '✓' : '○'}</span>
+                      One uppercase letter
+                    </div>
+                    <div className={`text-xs flex items-center ${passwordStrength.special ? 'text-green-600' : 'text-gray-500'}`}>
+                      <span className="mr-2">{passwordStrength.special ? '✓' : '○'}</span>
+                      One special character (!@#$%^&*...)
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -153,20 +212,22 @@ export default function SignupPage() {
                 id="confirmPassword"
                 name="confirmPassword"
                 type="password"
-                placeholder="••••••••"
+                placeholder="••••••••••"
                 value={formData.confirmPassword}
                 onChange={handleChange}
                 required
                 disabled={isLoading}
-                minLength={6}
+                minLength={8}
               />
+              {formData.confirmPassword && formData.password !== formData.confirmPassword && (
+                <p className="text-xs text-red-600">Passwords do not match</p>
+              )}
             </div>
           </CardContent>
           <CardFooter className="flex flex-col space-y-4">
             <Button
               type="submit"
               className="w-full"
-              onSubmit={handleSubmit}
               disabled={isLoading || success}
             >
               {isLoading ? "Creating account..." : "Sign Up"}
