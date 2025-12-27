@@ -19,9 +19,7 @@ export function Navbar({ activeTab = "maintenance"}) {
   ];
 
   const handleTabClick = (tabId) => {
-    if (onTabChange) {
-      onTabChange(tabId);
-    }
+    
     router.push(`/${tabId}`);
     setIsMobileMenuOpen(false);
   };
