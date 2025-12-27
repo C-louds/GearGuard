@@ -1,0 +1,167 @@
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Employee {
+  id           Int      @id @default(autoincrement())
+  name         String
+  email        String   @unique
+  password     String   
+  role         Role     @default(USER)
+  departmentId Int?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // relations
+  department          Department?          @relation(fields: [departmentId], references: [id])
+  technician          Technician?
+  assignedEquipment   Equipment[]
+  createdRequests     MaintenanceRequest[] @relation("RequestCreator")
+
+  @@index([email])
+  @@index([departmentId])
+}
+
+enum Role {
+  USER
+  TECHNICIAN
+  MANAGER
+  ADMIN
+}
+
+model Department {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // relations
+  employees Employee[]
+  equipment Equipment[]
+}
+
+model MaintenanceTeam {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // relations
+  technicians        Technician[]         @relation("TeamMembers")
+  equipment          Equipment[]
+  maintenanceRequest MaintenanceRequest[]
+}
+
+model Technician {
+  id                Int      @id @default(autoincrement())
+  employeeId        Int      @unique
+  maintenanceTeamId Int
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // Relations
+  employee            Employee             @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  maintenanceTeam     MaintenanceTeam      @relation("TeamMembers", fields: [maintenanceTeamId], references: [id])
+  defaultForEquipment Equipment[]
+  assignedRequests    MaintenanceRequest[]
+
+  @@index([employeeId])
+  @@index([maintenanceTeamId])
+}
+
+model EquipmentCategory {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // relations
+  equipment          Equipment[]
+  maintenanceRequest MaintenanceRequest[]
+}
+
+model Equipment {
+  id                  Int              @id @default(autoincrement())
+  name                String
+  serialNumber        String           @unique
+  categoryId          Int
+  departmentId        Int?
+  assignedEmployeeId  Int?
+  maintenanceTeamId   Int
+  defaultTechnicianId Int?
+  location            String
+  purchaseDate        DateTime?
+  warrantyExpiryDate  DateTime?
+  createdAt           DateTime         @default(now())
+  updatedAt           DateTime         @updatedAt
+
+  // relations
+  category            EquipmentCategory    @relation(fields: [categoryId], references: [id])
+  department          Department?          @relation(fields: [departmentId], references: [id])
+  assignedEmployee    Employee?            @relation(fields: [assignedEmployeeId], references: [id])
+  maintenanceTeam     MaintenanceTeam      @relation(fields: [maintenanceTeamId], references: [id])
+  defaultTechnician   Technician?          @relation(fields: [defaultTechnicianId], references: [id])
+  maintenanceRequests MaintenanceRequest[]
+
+  @@index([serialNumber])
+  @@index([categoryId])
+  @@index([departmentId])
+  @@index([maintenanceTeamId])
+}
+
+model MaintenanceRequest {
+  id                  Int          @id @default(autoincrement())
+  subject             String
+  description         String?      @db.Text
+  equipmentId         Int
+  equipmentCategoryId Int          // Auto-filled from equipment
+  maintenanceTeamId   Int          // Auto-filled from equipment
+  requestType         RequestType
+  stage               RequestStage @default(NEW)
+  
+  // Assigned Reqs
+  requestedById Int
+  assignedToId  Int?
+  
+  // Track Reqs
+  scheduledDate DateTime?
+  completedDate DateTime?
+  durationHours Decimal?  @db.Decimal(5, 2)
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // relations
+  equipment         Equipment         @relation(fields: [equipmentId], references: [id])
+  equipmentCategory EquipmentCategory @relation(fields: [equipmentCategoryId], references: [id])
+  maintenanceTeam   MaintenanceTeam   @relation(fields: [maintenanceTeamId], references: [id])
+  requestedBy       Employee          @relation("RequestCreator", fields: [requestedById], references: [id])
+  assignedTo        Technician?       @relation(fields: [assignedToId], references: [id])
+
+  @@index([equipmentId])
+  @@index([maintenanceTeamId])
+  @@index([assignedToId])
+  @@index([stage])
+  @@index([requestType])
+  @@index([scheduledDate])
+  @@index([createdAt])
+}
+
+enum RequestType {
+  CORRECTIVE // Breakdown/repair
+  PREVENTIVE // Scheduled maintenance
+}
+
+enum RequestStage {
+  NEW
+  ASSIGNED
+  IN_PROGRESS
+  REPAIRED
+  SCRAPPED
+}
