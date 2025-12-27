@@ -39,10 +39,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             throw new Error("Invalid credentials");
           }
 
-          // Check if user is active
-          if (!employee.isActive) {
-            throw new Error("Account is deactivated");
-          }
 
           // Verify password
           const isPasswordValid = await bcrypt.compare(
