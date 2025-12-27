@@ -10,12 +10,11 @@ export function Navbar({ activeTab = "maintenance"}) {
   const router = useRouter();
 
   const tabs = [
-    { id: 'dashboard', label: 'Dashboard', icon: Home },
+    { id: '/', label: 'Dashboard', icon: Home },
     { id: 'maintenance', label: 'Maintenance', icon: Wrench },
     { id: 'calendar', label: 'Maintenance Calendar', icon: Calendar },
     { id: 'equipment', label: 'Equipment', icon: Package },
-    { id: 'reporting', label: 'Reporting', icon: BarChart3 },
-    { id: 'teams', label: 'Teams', icon: Users }
+    { id: 'report', label: 'Report', icon: BarChart3 },
   ];
 
   const handleTabClick = (tabId) => {
