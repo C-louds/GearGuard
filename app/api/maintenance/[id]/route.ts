@@ -14,8 +14,8 @@ export async function GET(request: NextRequest,{ params }: { params: { id: strin
       );
     }
 
-    // const param = await params;
-    const requestId = parseInt(params.id);
+    const param = await params;
+    const requestId = parseInt(param.id);
 
     if (isNaN(requestId)) {
       return NextResponse.json(
@@ -100,8 +100,8 @@ export async function PUT(
       );
     }
 
-    // const param = await params;
-    const requestId = parseInt(params.id);
+    const param = await params;
+    const requestId = parseInt(param.id);
 
     if (isNaN(requestId)) {
       return NextResponse.json(
@@ -228,8 +228,8 @@ export async function DELETE(
       );
     }
 
-    // const param = await params;
-    const requestId = parseInt(params.id);;
+    const param = await params;
+    const requestId = parseInt(param.id);;
 
     if (isNaN(requestId)) {
       return NextResponse.json(
